@@ -1,0 +1,26 @@
+ram: 256B
+0-253: data
+254: flags
+255: pc
+
+flags:
+error (overflow), ==0, <0
+
+instructions: 1B opcode, 2*1B arguments
+
+opcode:
+2b op, 1b first argument is pointer, 1b second argument is literal, 1b set flags, 1b execute if error flat, 2b execute if sign flags
+
+op:
+mov
+add
+nor
+and
+
+sign flags: 1b if <0, 1b if ==0
+00 always
+01 ==0
+10 <0
+11 <=0
+
+halt if pc==253
