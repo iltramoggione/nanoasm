@@ -54,6 +54,8 @@ cell_addr_t compile(ram_t ram, char *str)
 		{"hlt",0,1,{op_mov,0,0,0},"255 '250"},
 		{"not",1,1,{op_nor,0,0,0},"&0 '0"},
 		{"chk",1,1,{op_mov,0,0,0},"&0 &0"},
+		{"neg",1,2,{op_nor,op_add,0,0},"&0 '0 &0 '1"},
+		{"sub",1,2,{op_nor,op_add,op_nor,op_add},"&1 '0 &0 &1 &1 '0 &0 '1"},
 	};
 	int ops_size=sizeof(ops)/sizeof(op_def_t);
 	show_ops(ops,ops_size);

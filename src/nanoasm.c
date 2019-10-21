@@ -9,8 +9,8 @@ int main(int argc, char **argv)
 	compile(ram,
 	"jmp &2\n"
 	"var '3\n"
-	"dec $1 f\n"
-	"dec *$1\n"
+	"add $1 '-1 f\n"
+	"add *$1 '-1\n"
 	"jmp &6 <=\n"
 	"jmp &2\n"
 	"hlt\n"

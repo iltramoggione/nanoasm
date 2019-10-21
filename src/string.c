@@ -62,6 +62,7 @@ val_t get_val(char *str, int pos)
 	val.ref=0;
 	val.pos=0;
 	int base=10;
+	int neg=0;
 	if(str[pos]=='\'')
 	{
 		val.lit=1;
@@ -88,6 +89,11 @@ val_t get_val(char *str, int pos)
 	}
 	else
 	{
+		if(str[pos]=='-')
+		{
+			neg=1;
+			pos++;
+		}
 		if(str[pos]=='x') base=16;
 		if(str[pos]=='b') base=2;
 		if(str[pos]=='o') base=8;
@@ -98,6 +104,7 @@ val_t get_val(char *str, int pos)
 			val.val=val.val*base+get_digit(str,pos);
 		}
 	}
+	if(neg) val.val=-val.val;
 	return val;
 }
 
