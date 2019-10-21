@@ -39,12 +39,12 @@ int main(int argc, char **argv)
 	"mov 255 '247 e\n");
 	/**/
 	compile(ram,
-	"jmp '1\n"
+	"jmp &2\n"
 	"var '3\n"
-	"dec 3 f\n"
-	"dec *3\n"
-	"jmp '13 <=\n"
-	"jmp '1\n"
+	"dec $1 f\n"
+	"dec *$1\n"
+	"jmp &6 <=\n"
+	"jmp &2\n"
 	"hlt\n"
 	"hlt e\n");
 	execute(ram,100);

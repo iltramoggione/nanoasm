@@ -24,3 +24,30 @@ sign flags: 1b if <0, 1b if ==0
 11 <=0
 
 halt if pc==253
+
+compilable format:
+<op> [arguments ...] [flags]
+argument format:
+0  value of cell 0
+'0 literal 0
+*0 value of cell pointed by cell 0
+&0 reference to instruction 0 (after incrementing pc, for jumps)
+$0 reference to instruction 0 (before incrementing pc, for data)
+flags:
+f set flags
+e execute if error flag is set
+< execute if <0 flag is set
+= execute if =0 flag is set
+native ops:
+mov
+add
+nor
+and
+compiled ops:
+var 
+inc
+dec
+jmp
+hlt
+not
+chk

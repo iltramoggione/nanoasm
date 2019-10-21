@@ -60,11 +60,28 @@ val_t get_val(char *str, int pos)
 	val.lit=0;
 	val.ptr=0;
 	val.ref=0;
+	val.pos=0;
 	int base=10;
-	if(str[pos]=='&') val.ref=1;
-	if(str[pos]=='*') val.ptr=1;
-	if(str[pos]=='\'') val.lit=1;
-	if(str[pos]=='&' || str[pos]=='*' || str[pos]=='\'') pos++;
+	if(str[pos]=='\'')
+	{
+		val.lit=1;
+		pos++;
+	}
+	if(str[pos]=='*')
+	{
+		val.ptr=1;
+		pos++;
+	}
+	if(str[pos]=='&')
+	{
+		val.ref=1;
+		pos++;
+	}
+	if(str[pos]=='$')
+	{
+		val.pos=1;
+		pos++;
+	}
 	if(str[pos]=='c')
 	{
 		val.val=str[pos+1];

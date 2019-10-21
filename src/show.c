@@ -128,4 +128,13 @@ void show_ops(op_def_t *ops, int ops_size)
 	}
 }
 
+void show_refs(cell_addr_t *ref, int ref_size)
+{	
+	printf("refs: %d\n",ref_size);
+	for(int i=0;i<ref_size;i++)
+	{
+		printf("%d: [" PRINTF_HEX "]\n",i,ref[i]);
+	}
+}
+
 #endif

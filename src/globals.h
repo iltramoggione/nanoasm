@@ -48,6 +48,7 @@ typedef struct{
 	uint8_t lit:1;
 	uint8_t ptr:1;
 	uint8_t ref:1;
+	uint8_t pos:1;
 } val_t;
 
 typedef struct{
