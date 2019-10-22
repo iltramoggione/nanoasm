@@ -83,17 +83,17 @@ val_t get_val(char *str, int pos)
 		val.pos=1;
 		pos++;
 	}
+	if(str[pos]=='-')
+	{
+		neg=1;
+		pos++;
+	}
 	if(str[pos]=='c')
 	{
 		val.val=str[pos+1];
 	}
 	else
 	{
-		if(str[pos]=='-')
-		{
-			neg=1;
-			pos++;
-		}
 		if(str[pos]=='x') base=16;
 		if(str[pos]=='b') base=2;
 		if(str[pos]=='o') base=8;

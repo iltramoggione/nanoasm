@@ -4,19 +4,25 @@
 #include "globals.h"
 #include "flags.c"
 
-void execute(ram_t ram, int max_op)
+void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size)
 {
 	cell_addr_t pc=0;
 	cell_val_t parg1, parg2, arg1, arg2;
 	uint8_t err;
 	flags_t flags;
 	op_t op;
-	for(int i=0;(i<max_op || max_op==0) && pc!=RAM_PC_HLT;i++)
+	for(int i=0;;i++)
 	{
-		show_ram(ram);
+		show_ram(ram,1,1);
 		pc=ram[RAM_PC];
+		if(pc==RAM_PC_HLT) break;
+		if(i>=max_op && max_op!=0)
+		{
+			printf("aborted execution\n");
+			break;
+		}
+		show_op_code(ram,pc,code,code_ops,code_ops_size);
 		op.data=ram[pc];
-		//show_op(ram,pc);
 		flags.data=ram[RAM_FLAGS];
 		parg1=ram[(cell_addr_t)(pc+OP_ARG_1)];
 		parg2=ram[(cell_addr_t)(pc+OP_ARG_2)];
@@ -55,8 +61,8 @@ void execute(ram_t ram, int max_op)
 			}
 			if(op.set)
 			{
-				if(ram[parg1]==0) flags.zero=1;
-				if(calc_neg(ram[parg1]) || flags.zero) flags.neg=1;
+				flags.zero = ram[parg1]==0;
+				flags.neg = calc_neg(ram[parg1]) || flags.zero;
 				flags.err=err;
 				ram[RAM_FLAGS]=flags.data;
 			}

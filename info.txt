@@ -55,3 +55,6 @@ not <dst>
 chk <dst>, doesn't automatically sets the flags
 neg <dst>
 sub <dst> <src>, src can't be a literal
+cmp <dst> <src>, src can't be a literal, checks dst-src without changing dst, doesn't automatically sets the flags
+cma <dst> <src>, src can't be a literal, checks dst+src without changing dst, doesn't automatically sets the flags
+cmx <dst> <src1> <src2>, checks dst+src1, sets dst to dst+src1+src2, doesn't automatically sets the flags

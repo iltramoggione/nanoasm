@@ -8,18 +8,27 @@
 #define PRINTF_INT "%3hhu"
 #define PRINTF_BITS "%hhu"
 
+void show_line(char *str, int pos)
+{
+	for(int i=pos;i<strlen(str);i++)
+	{
+		if(str[i]=='\n') break;
+		printf("%c",str[i]);
+	}
+}
+
 void show_cell(ram_t ram, cell_addr_t addr)
 {
 	printf("" PRINTF_HEX "(" PRINTF_INT ") ",ram[addr],ram[addr]);
 }
 
-void show_ram(ram_t ram)
+void show_ram(ram_t ram, int show_all, int show_addr)
 {
 	for(int i=0,lasti=-1;i<RAM_SIZE;i++)
 	{
-		if(ram[i] || i<16 || i>=RAM_FLAGS)
+		if(ram[i] || i<16 || i>=RAM_FLAGS || show_all)
 		{
-			if(i!=lasti) printf("&" PRINTF_HEX ": ",i);
+			if(i!=lasti || i%16==0 || show_addr) printf("&" PRINTF_HEX ": ",i);
 			show_cell(ram,i);
 			lasti=i+1;
 		}
@@ -54,7 +63,7 @@ void show_op(ram_t ram, cell_addr_t pc)
 			strcpy(op_name,"and");
 			break;
 	}
-	printf("op: ");
+	printf("@" PRINTF_HEX "(" PRINTF_INT ") op: ",pc,pc);
 	uint8_t parg1=ram[(cell_addr_t)(pc+OP_ARG_1)];
 	uint8_t parg2=ram[(cell_addr_t)(pc+OP_ARG_2)];
 	uint8_t arg1=ram[parg1];
@@ -124,7 +133,12 @@ void show_ops(op_def_t *ops, int ops_size)
 		printf("nargs:%hhu, ",ops[i].nargs);
 		printf("nops:%hhu, ",ops[i].nops);
 		printf("flagsetter:%hhu, ",ops[i].flagsetter);
-		printf("ops:[" PRINTF_BITS "," PRINTF_BITS "," PRINTF_BITS "," PRINTF_BITS "], ",ops[i].ops[0],ops[i].ops[1],ops[i].ops[2],ops[i].ops[3]);
+		printf("ops:[");
+		for(int j=0;j<sizeof(ops[i].ops)/sizeof(ops[i].ops[0]);j++)
+		{
+			printf(PRINTF_BITS ",",ops[i].ops[j]);
+		}
+		printf("], ");
 		printf("args:%s)\n",ops[i].args);
 	}
 }
@@ -134,8 +148,23 @@ void show_refs(cell_addr_t *ref, int ref_size)
 	printf("refs: %d\n",ref_size);
 	for(int i=0;i<ref_size;i++)
 	{
-		printf("%d: [" PRINTF_HEX "]\n",i,ref[i]);
+		if(ref[i]) printf("%d: [" PRINTF_HEX "]\n",i,ref[i]);
 	}
+}
+
+void show_op_code(ram_t ram, cell_addr_t pc, char *code, int *code_ops, int code_ops_size)
+{
+	if(pc>=code_ops_size || code_ops[pc]<0)
+	{
+		printf("no code\n");
+	}
+	else
+	{
+		printf("code: ");
+		show_line(code,code_ops[pc]);
+		printf("\n");
+	}
+	show_op(ram,pc);
 }
 
 #endif

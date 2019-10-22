@@ -24,7 +24,7 @@ uint8_t set_op(ram_t ram, cell_addr_t addr, uint8_t op, cell_val_t arg1, cell_va
 uint8_t set_val(ram_t ram, cell_addr_t addr, cell_val_t val)
 {
 	ram[addr]=val;
-	printf("value: ");
+	printf("@" PRINTF_HEX "(" PRINTF_INT ") value: ",addr,addr);
 	show_cell(ram,addr);
 	printf("\n");
 	return addr+1;
