@@ -76,6 +76,7 @@ typedef struct{
 	char name[16];
 	uint8_t nargs;
 	uint8_t nops;
+	uint8_t flagsetter;
 	cell_op_t ops[4];
 	char args[32];
 } op_def_t;
