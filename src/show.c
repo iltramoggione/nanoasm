@@ -123,6 +123,7 @@ void show_ops(op_def_t *ops, int ops_size)
 		printf("%s: (",ops[i].name);
 		printf("nargs:%hhu, ",ops[i].nargs);
 		printf("nops:%hhu, ",ops[i].nops);
+		printf("flagsetter:%hhu, ",ops[i].flagsetter);
 		printf("ops:[" PRINTF_BITS "," PRINTF_BITS "," PRINTF_BITS "," PRINTF_BITS "], ",ops[i].ops[0],ops[i].ops[1],ops[i].ops[2],ops[i].ops[3]);
 		printf("args:%s)\n",ops[i].args);
 	}
