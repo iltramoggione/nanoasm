@@ -2,6 +2,7 @@
 #define __SHOW_C__
 
 #include "globals.h"
+#include "flags.c"
 #include <string.h>
 
 #define PRINTF_HEX "%02hhx"
@@ -63,45 +64,53 @@ void show_op(ram_t ram, cell_addr_t pc)
 			strcpy(op_name,"and");
 			break;
 	}
-	printf("@" PRINTF_HEX "(" PRINTF_INT ") op: ",pc,pc);
+	printf("@" PRINTF_HEX "(" PRINTF_INT ") op:",pc,pc);
 	uint8_t parg1=ram[(cell_addr_t)(pc+OP_ARG_1)];
 	uint8_t parg2=ram[(cell_addr_t)(pc+OP_ARG_2)];
 	uint8_t arg1=ram[parg1];
 	uint8_t arg2;
-	printf("%s ",op_name);
+	printf(" %s",op_name);
 	if(op.ptr)
 	{
 		arg1=ram[arg1];
-		printf("*[" PRINTF_HEX "]=[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ") ",parg1,ram[parg1],arg1,arg1);
+		printf(" *[" PRINTF_HEX "]=[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg1,ram[parg1],arg1,arg1);
 	}
 	else
 	{
-		printf("[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ") ",parg1,arg1,arg1);
+		printf(" [" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg1,arg1,arg1);
 	}
 	if(op.val)
 	{
 		arg2=parg2;
-		printf("\'" PRINTF_HEX "(" PRINTF_INT ")\' ",parg2,parg2);
+		printf(" \'" PRINTF_HEX "(" PRINTF_INT ")\'",parg2,parg2);
 	}
 	else
 	{
 		arg2=ram[parg2];
-		printf("[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ") ",parg2,arg2,arg2);
+		printf(" [" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg2,arg2,arg2);
 	}
 	if(op.err) printf(" if err");
 	switch(op.ifn << 1 | op.ifz)
 	{
 		case if_eq:
-			printf("if ==0");
+			printf(" if ==0");
 			break;
 		case if_lt:
-			printf("if <0");
+			printf(" if <0");
 			break;
 		case if_le:
-			printf("if <=0");
+			printf(" if <=0");
 			break;
 	}
-	printf(": " PRINTF_HEX " (",op.data);
+	if(check_flags(ram,pc))
+	{
+		printf(" flags ok");
+	}
+	else
+	{
+		printf(" flags not ok");
+	}
+	printf(" : " PRINTF_HEX " (",op.data);
 	printf("op:" PRINTF_BITS ", ",op_op);
 	printf("ptr:" PRINTF_BITS ", ",op_ptr);
 	printf("val:" PRINTF_BITS ", ",op_val);
@@ -154,7 +163,7 @@ void show_refs(cell_addr_t *ref, int ref_size)
 
 void show_op_code(ram_t ram, cell_addr_t pc, char *code, int *code_ops, int code_ops_size)
 {
-	if(pc>=code_ops_size || code_ops[pc]<0)
+	if(pc>code_ops_size || code_ops[pc]<0)
 	{
 		printf("no code\n");
 	}

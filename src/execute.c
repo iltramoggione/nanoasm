@@ -14,6 +14,7 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 	for(int i=0;;i++)
 	{
 		show_ram(ram,1,1);
+		show_flags(ram);
 		pc=ram[RAM_PC];
 		if(pc==RAM_PC_HLT) break;
 		if(i>=max_op && max_op!=0)
@@ -49,7 +50,7 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 					ram[parg1]=arg2;
 					break;
 				case op_add:
-					if(calc_overflow(arg1,arg2)) err=1;
+					if(calc_carry(arg1,arg2)) err=1;
 					ram[parg1]=arg1+arg2;
 					break;
 				case op_nor:
@@ -62,7 +63,7 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 			if(op.set)
 			{
 				flags.zero = ram[parg1]==0;
-				flags.neg = calc_neg(ram[parg1]) || flags.zero;
+				flags.neg = calc_neg(ram[parg1]);
 				flags.err=err;
 				ram[RAM_FLAGS]=flags.data;
 			}

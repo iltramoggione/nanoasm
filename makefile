@@ -1,6 +1,6 @@
-.PHONY: build clean log
+.PHONY: all clean log
 
-build:
+all:
 	gcc -Wall -Wno-comment src/nanoasm.c -o nanoasm.exe
 
 clean:
@@ -8,3 +8,5 @@ clean:
 
 log:
 	./nanoasm.exe | tee log.txt
+
+alllog: all log
