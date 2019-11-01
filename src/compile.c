@@ -201,8 +201,8 @@ void compile(ram_t ram, cell_addr_t *pc, char *str, int *code_ops, int *code_ops
 	op_def_new(ops,&ops_size,"chk","add /0 '0 f");
 	op_def_new(ops,&ops_size,"neg","not /0 inc /0 f");
 	op_def_new(ops,&ops_size,"sub","neg /1 add /0 /1 f neg /1");
-	op_def_new(ops,&ops_size,"cmp","neg /1 add /0 /1 f neg /1 add /0 /1");
-	op_def_new(ops,&ops_size,"cma","add /0 /1 f neg /1 add /0 /1 neg /1");
+	op_def_new(ops,&ops_size,"cmp","sub /0 /1 f add /0 /1");
+	op_def_new(ops,&ops_size,"cma","add /0 /1 f sub /0 /1");
 	op_def_new(ops,&ops_size,"cmx","add /0 /1 f add /0 /2");
 	show_ops(ops,ops_size);
 	cell_addr_t ref[256];
