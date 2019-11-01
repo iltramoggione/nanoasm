@@ -23,7 +23,7 @@ sign flags: 1b if <0, 1b if ==0
 10 <0
 11 <=0
 
-halt if pc==253
+halt if pc>=252
 
 compilable format:
 <op> [arguments ...] [flags]
@@ -31,8 +31,7 @@ argument format:
 0  value of cell 0
 '0 literal 0
 *0 value of cell pointed by cell 0
-&0 reference to instruction 0 (after incrementing pc, for jumps)
-$0 reference to instruction 0 (before incrementing pc, for data)
+&0 reference to instruction 0
 values can also be negative, hexadecimal, binary or octal, specified with -, x, b, or o before the number
 instead of a number the value can be a single character after c
 flags:

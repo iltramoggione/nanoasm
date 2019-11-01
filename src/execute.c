@@ -6,7 +6,7 @@
 
 void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size)
 {
-	cell_addr_t pc=0;
+	cell_addr_t pc=-OP_SIZE;
 	cell_val_t parg1, parg2, arg1, arg2;
 	uint8_t err;
 	flags_t flags;
@@ -16,7 +16,8 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 		show_ram(ram,1,1);
 		show_flags(ram);
 		pc=ram[RAM_PC];
-		if(pc==RAM_PC_HLT) break;
+		ram[RAM_PC]+=OP_SIZE;
+		if(pc>=RAM_PC_HLT) break;
 		if(i>=max_op && max_op!=0)
 		{
 			printf("aborted execution\n");
@@ -68,7 +69,6 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 				ram[RAM_FLAGS]=flags.data;
 			}
 		}
-		ram[RAM_PC]+=OP_SIZE;
 	}
 }
 

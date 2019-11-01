@@ -57,12 +57,17 @@ val_t get_val(char *str, int pos)
 {
 	val_t val;
 	val.val=0;
+	val.arg=0;
 	val.lit=0;
 	val.ptr=0;
 	val.ref=0;
-	val.pos=0;
 	int base=10;
 	int neg=0;
+	if(str[pos]=='/')
+	{
+		val.arg=1;
+		pos++;
+	}
 	if(str[pos]=='\'')
 	{
 		val.lit=1;
@@ -76,11 +81,6 @@ val_t get_val(char *str, int pos)
 	if(str[pos]=='&')
 	{
 		val.ref=1;
-		pos++;
-	}
-	if(str[pos]=='$')
-	{
-		val.pos=1;
 		pos++;
 	}
 	if(str[pos]=='-')

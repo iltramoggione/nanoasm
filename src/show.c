@@ -133,22 +133,42 @@ void show_flags(ram_t ram)
 	printf("err:" PRINTF_BITS ")\n",flags_err);
 }
 
+void show_val(val_t val)
+{
+	uint8_t val_arg=val.arg;
+	uint8_t val_lit=val.lit;
+	uint8_t val_ptr=val.ptr;
+	uint8_t val_ref=val.ref;
+	printf("val: " PRINTF_HEX "(" PRINTF_INT ") (",val.val,val.val);
+	printf("arg:" PRINTF_BITS ", ",val_arg);
+	printf("lit:" PRINTF_BITS ", ",val_lit);
+	printf("ptr:" PRINTF_BITS ", ",val_ptr);
+	printf("ref:" PRINTF_BITS ")\n",val_ref);
+}
+
 void show_ops(op_def_t *ops, int ops_size)
 {	
 	printf("ops: %d\n",ops_size);
 	for(int i=0;i<ops_size;i++)
 	{
-		printf("%s: (",ops[i].name);
+		printf("%d(%s): (",i,ops[i].name);
 		printf("nargs:%hhu, ",ops[i].nargs);
-		printf("nops:%hhu, ",ops[i].nops);
+		printf("args_size:%hhu, ",ops[i].args_size);
+		printf("ops_size:%hhu, ",ops[i].ops_size);
 		printf("flagsetter:%hhu, ",ops[i].flagsetter);
 		printf("ops:[");
-		for(int j=0;j<sizeof(ops[i].ops)/sizeof(ops[i].ops[0]);j++)
+		for(int j=0;j<ops[i].ops_size;j++)
 		{
-			printf(PRINTF_BITS ",",ops[i].ops[j]);
+			printf("%d,",ops[i].ops[j]);
 		}
 		printf("], ");
-		printf("args:%s)\n",ops[i].args);
+		printf("args:[\n");
+		for(int j=0;j<ops[i].args_size;j++)
+		{
+			printf("\t");
+			show_val(ops[i].args[j]);
+		}
+		printf("])\n");
 	}
 }
 

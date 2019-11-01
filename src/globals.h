@@ -9,7 +9,7 @@
 #define RAM_SIZE 256
 #define RAM_PC (RAM_SIZE - 1)
 #define RAM_FLAGS (RAM_SIZE - 2)
-#define RAM_PC_HLT (RAM_SIZE - 3)
+#define RAM_PC_HLT (RAM_SIZE - 4)
 #define OP_SIZE 3
 #define OP_ARG_1 1
 #define OP_ARG_2 2
@@ -45,10 +45,10 @@ typedef union{
 
 typedef struct{
 	cell_val_t val;
+	uint8_t arg:1;
 	uint8_t lit:1;
 	uint8_t ptr:1;
 	uint8_t ref:1;
-	uint8_t pos:1;
 } val_t;
 
 typedef struct{
@@ -75,10 +75,13 @@ enum{
 typedef struct{
 	char name[16];
 	uint8_t nargs;
-	uint8_t nops;
+	uint8_t args_size;
+	uint8_t ops_size;
 	uint8_t flagsetter;
-	cell_op_t ops[8];
-	char args[64];
+	int ops[8];
+	val_t args[16];
 } op_def_t;
+
+#define max(a,b) ((a) > (b) ? (a) : (b))
 
 #endif
