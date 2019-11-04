@@ -1,11 +1,7 @@
 #ifndef __STRING_C__
 #define __STRING_C__
 
-#include <string.h>
-#include "globals.h"
-
-#define OP_END 255
-#define OP_VAR 254
+#include "../include/string.h"
 
 int is_space(char *str, int pos)
 {

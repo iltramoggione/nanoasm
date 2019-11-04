@@ -1,15 +1,17 @@
 ram: 256B
-0-253: data
+0-251: data
+252: port 0 (read), port 2 (write)
+253: port 1 (read), port 3 (write)
 254: flags
 255: pc
 
 flags:
-error (carry), ==0, <0
+port 0 output ready, port 1 output ready, port 2 input ready, port 3 input ready, unused, <0, ==0, error (carry)
 
 instructions: 1B opcode, 2*1B arguments
 
 opcode:
-2b op, 1b first argument is pointer, 1b second argument is literal, 1b set flags, 1b execute if error flat, 2b execute if sign flags
+2b op, 1b first argument is pointer, 1b second argument is literal, 1b set flags, 1b execute if error flag, 2b execute if sign flags
 
 op:
 mov

@@ -1,15 +1,14 @@
 #ifndef __FLAGS_C__
 #define __FLAGS_C__
 
-#include "globals.h"
-#include <string.h>
+#include "../include/flags.h"
 
-uint8_t check_flags(ram_t ram, uint8_t pc)
+uint8_t check_flags(ram_t *ram, uint8_t pc)
 {
 	op_t op;
-	op.data=ram[pc];
+	op.data=read_ram(ram,pc);
 	flags_t flags;
-	flags.data=ram[RAM_FLAGS];
+	flags.data=read_ram(ram,RAM_FLAGS);
 	uint8_t err=!op.err || flags.err;
 	uint8_t ifs=1;
 	switch(op.ifn << 1 | op.ifz)
@@ -46,12 +45,12 @@ uint8_t calc_overflow(cell_val_t a, cell_val_t b)
 	return !(calc_neg(a) ^ calc_neg(b)) && calc_neg(a+b) ^ calc_neg(a);
 }
 
-uint8_t calc_subcarry(cell_val_t a, cell_val_t b) 
+uint8_t calc_subcarry(cell_val_t a, cell_val_t b)
 {
 	return calc_neg(a) ^ calc_neg(b) ^ calc_neg(a+b);
 }
 
-uint8_t calc_carry(cell_val_t a, cell_val_t b) 
+uint8_t calc_carry(cell_val_t a, cell_val_t b)
 {
 	return calc_overflow(a,b) ^ calc_subcarry(a,b);
 }

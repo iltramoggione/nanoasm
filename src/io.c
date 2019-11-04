@@ -1,0 +1,140 @@
+#ifndef __IO_C__
+#define __IO_C__
+
+#include "../include/io.h"
+
+channel_t *new_channel_t()
+{
+	channel_t *r=malloc(sizeof(channel_t));
+	r->data=0;
+	r->has_data=0;
+	r->closed=0;
+	r->mutex=PTHREAD_MUTEX_INITIALIZER;
+	r->cond=PTHREAD_COND_INITIALIZER;
+	return r;
+}
+
+int channel_is_closed(channel_t *channel)
+{
+	pthread_mutex_lock(&channel->mutex);
+	int r=channel->closed;
+	pthread_mutex_unlock(&channel->mutex);
+	return r;
+}
+
+int channel_can_read(channel_t *channel)
+{
+	pthread_mutex_lock(&channel->mutex);
+	int r=channel->has_data && !channel->closed;
+	pthread_mutex_unlock(&channel->mutex);
+	return r;
+}
+
+int channel_can_write(channel_t *channel)
+{
+	pthread_mutex_lock(&channel->mutex);
+	int r=!channel->has_data && !channel->closed;
+	pthread_mutex_unlock(&channel->mutex);
+	return r;
+}
+
+cell_t channel_read(channel_t *channel)
+{
+	pthread_mutex_lock(&channel->mutex);
+	for(;!channel->has_data && !channel->closed;)
+	{
+		pthread_cond_wait(&channel->cond,&channel->mutex);
+	}
+	channel->has_data=0;
+	cell_t r=channel->data;
+	pthread_cond_broadcast(&channel->cond);
+	pthread_mutex_unlock(&channel->mutex);
+	return r;
+}
+
+void channel_write(channel_t *channel, cell_t data)
+{
+	pthread_mutex_lock(&channel->mutex);
+	for(;channel->has_data && !channel->closed;)
+	{
+		pthread_cond_wait(&channel->cond,&channel->mutex);
+	}
+	channel->has_data=1;
+	channel->data=data;
+	pthread_cond_broadcast(&channel->cond);
+	pthread_mutex_unlock(&channel->mutex);
+}
+
+void channel_close(channel_t *channel)
+{
+	pthread_mutex_lock(&channel->mutex);
+	channel->closed=1;
+	pthread_cond_broadcast(&channel->cond);
+	pthread_mutex_unlock(&channel->mutex);
+}
+
+void *channel_writing(void *arg)
+{
+	thread_channel_t *this=(thread_channel_t*)arg;
+	for(;;)
+	{
+		uint8_t data=channel_read(this->channel);
+		if(channel_is_closed(this->channel))
+		{
+			return NULL;
+		}
+		this->function(this->arg, data);
+	}
+}
+
+void null_writer(void *arg, uint8_t data)
+{
+	return;
+}
+
+void stdout_writer(void *arg, uint8_t data)
+{
+	printf("%c",data);
+}
+
+void stderr_writer(void *arg, uint8_t data)
+{
+	fprintf(stderr,"%c",data);
+}
+
+void stddebug_writer(void *arg, uint8_t data)
+{
+	fprintf(STDDEBUG,"%c",data);
+}
+
+thread_channel_t *new_writing_channel(void (*function)(void *arg, uint8_t data))
+{
+	thread_channel_t *r=malloc(sizeof(thread_channel_t));
+	r->channel=new_channel_t();
+	r->function=function;
+	r->arg=NULL;
+	pthread_create(&r->thread,NULL,channel_writing,r);
+	return r;
+}
+
+thread_channel_t *new_null_writer_channel()
+{
+	return new_writing_channel(null_writer);
+}
+
+thread_channel_t *new_stdout_writer_channel()
+{
+	return new_writing_channel(stdout_writer);
+}
+
+thread_channel_t *new_stderr_writer_channel()
+{
+	return new_writing_channel(stderr_writer);
+}
+
+thread_channel_t *new_stddebug_writer_channel()
+{
+	return new_writing_channel(stddebug_writer);
+}
+
+#endif

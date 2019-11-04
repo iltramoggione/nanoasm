@@ -1,3 +1,6 @@
 .vscode/*
+bin/*
+obj/*
 *.exe
 log.txt
+commit.txt

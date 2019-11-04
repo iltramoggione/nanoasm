@@ -1,10 +1,9 @@
 #ifndef __EXECUTE_C__
 #define __EXECUTE_C__
 
-#include "globals.h"
-#include "flags.c"
+#include "../include/execute.h"
 
-void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size)
+void execute(ram_t *ram, int max_op, char *code, int *code_ops, int code_ops_size)
 {
 	cell_addr_t pc=-OP_SIZE;
 	cell_val_t parg1, parg2, arg1, arg2;
@@ -15,24 +14,23 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 	{
 		show_ram(ram,1,1);
 		show_flags(ram);
-		pc=ram[RAM_PC];
-		ram[RAM_PC]+=OP_SIZE;
+		pc=read_ram(ram,RAM_PC);
+		write_ram(ram,RAM_PC,pc+OP_SIZE);
 		if(pc>=RAM_PC_HLT) break;
 		if(i>=max_op && max_op!=0)
 		{
-			printf("aborted execution\n");
+			fprintf(STDDEBUG,"aborted execution\n");
 			break;
 		}
 		show_op_code(ram,pc,code,code_ops,code_ops_size);
-		op.data=ram[pc];
-		flags.data=ram[RAM_FLAGS];
-		parg1=ram[(cell_addr_t)(pc+OP_ARG_1)];
-		parg2=ram[(cell_addr_t)(pc+OP_ARG_2)];
-		arg1=ram[parg1];
+		op.data=read_ram(ram,pc);
+		flags.data=read_ram(ram,RAM_FLAGS);
+		parg1=read_ram(ram,pc+OP_ARG_1);
+		parg2=read_ram(ram,pc+OP_ARG_2);
 		if(op.ptr)
 		{
+			arg1=read_ram(ram,parg1);
 			parg1=arg1;
-			arg1=ram[parg1];
 		}
 		if(op.val)
 		{
@@ -40,7 +38,7 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 		}
 		else
 		{
-			arg2=ram[parg2];
+			arg2=read_ram(ram,parg2);
 		}
 		if(check_flags(ram,pc))
 		{
@@ -48,25 +46,28 @@ void execute(ram_t ram, int max_op, char *code, int *code_ops, int code_ops_size
 			switch(op.op)
 			{
 				case op_mov:
-					ram[parg1]=arg2;
+					write_ram(ram,parg1,arg2);
 					break;
 				case op_add:
+					arg1=read_ram(ram,parg1);
 					if(calc_carry(arg1,arg2)) err=1;
-					ram[parg1]=arg1+arg2;
+					write_ram(ram,parg1,arg1+arg2);
 					break;
 				case op_nor:
-					ram[parg1]=~(arg1|arg2);
+					arg1=read_ram(ram,parg1);
+					write_ram(ram,parg1,~(arg1|arg2));
 					break;
 				case op_and:
-					ram[parg1]=arg1&arg2;
+					arg1=read_ram(ram,parg1);
+					write_ram(ram,parg1,arg1&arg2);
 					break;
 			}
 			if(op.set)
 			{
-				flags.zero = ram[parg1]==0;
-				flags.neg = calc_neg(ram[parg1]);
+				flags.zero = read_ram(ram,parg1)==0;
+				flags.neg = calc_neg(read_ram(ram,parg1));
 				flags.err=err;
-				ram[RAM_FLAGS]=flags.data;
+				write_ram(ram,RAM_FLAGS,flags.data);
 			}
 		}
 	}

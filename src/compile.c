@@ -1,10 +1,7 @@
 #ifndef __COMPILE_C__
 #define __COMPILE_C__
 
-#include "globals.h"
-#include "show.c"
-#include "string.c"
-#include "write_ram.c"
+#include "../include/compile.h"
 
 void op_def_new(op_def_t *ops, int *ops_size, char name[16], char *str)
 {
@@ -109,12 +106,13 @@ int op_size(op_def_t *ops, int ops_size, char name[16])
 	return op_size_id(ops,ops_size,op_id(ops,ops_size,name));
 }
 
-void calc_ref(ram_t ram, cell_addr_t pc, char *str, op_def_t *ops, int ops_size, cell_addr_t *ref, int ref_size)
+void calc_ref(ram_t *ram, cell_addr_t pc, char *str, op_def_t *ops, int ops_size, cell_addr_t *ref, int *ref_size)
 {
 	cell_op_t op;
 	op_flags_t flags;
 	int pos=0;
-	for(int i=0,end=0;!end && i<ref_size;i++)
+	int i,end;
+	for(i=0,end=0;!end && i<*ref_size;i++)
 	{
 		ref[i]=pc;
 		pos=trim(str,pos);
@@ -140,9 +138,10 @@ void calc_ref(ram_t ram, cell_addr_t pc, char *str, op_def_t *ops, int ops_size,
 				break;
 		}
 	}
+	//*ref_size=i;
 }
 
-void compile_op(ram_t ram, cell_addr_t *pc, op_def_t *ops, int ops_size, int op, val_t args[16], op_flags_t flags, int flagsetter, int *code_ops, int *code_ops_size, int op_pos)
+void compile_op(ram_t *ram, cell_addr_t *pc, op_def_t *ops, int ops_size, int op, val_t args[16], op_flags_t flags, int flagsetter, int *code_ops, int *code_ops_size, int op_pos)
 {
 	if(op>=ops_size) return;
 	//printf("op %d(%s)\n",op,ops[op].name);
@@ -180,7 +179,7 @@ void compile_op(ram_t ram, cell_addr_t *pc, op_def_t *ops, int ops_size, int op,
 	}
 }
 
-void compile(ram_t ram, cell_addr_t *pc, char *str, int *code_ops, int *code_ops_size)
+void compile(ram_t *ram, cell_addr_t *pc, char *str, int *code_ops, int *code_ops_size)
 {
 	op_def_t ops[256]={
 		{"mov",2,2,1,0,{op_mov},{{0,1,0,0,0},{1,1,0,0,0}}},
@@ -212,7 +211,7 @@ void compile(ram_t ram, cell_addr_t *pc, char *str, int *code_ops, int *code_ops
 	int pos=0, op_pos;
 	val_t val[16];
 	op_flags_t flags;
-	calc_ref(ram,*pc,str,ops,ops_size,ref,ref_size);
+	calc_ref(ram,*pc,str,ops,ops_size,ref,&ref_size);
 	show_refs(ref,ref_size);
 	*code_ops_size=0;
 	for(int i=0,end=0;!end && i<ref_size;i++)
