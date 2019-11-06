@@ -11,13 +11,19 @@ port 0 output ready, port 1 output ready, port 2 input ready, port 3 input ready
 instructions: 1B opcode, 2*1B arguments
 
 opcode:
-2b op, 1b first argument is pointer, 1b second argument is literal, 1b set flags, 1b execute if error flag, 2b execute if sign flags
+2b op, 2b argument flags, 1b set flags, 1b execute if error flag, 2b execute if sign flags
 
 op:
 mov
 add
 nor
 and
+
+argument flags:
+00 dst cell, src cell
+01 dst cell, src literal
+10 dst pointer, src cell
+11 dst cell, src pointer
 
 sign flags: 1b if <0, 1b if ==0
 00 always
@@ -48,17 +54,18 @@ nor <dst> <src>
 and <dst> <src>
 compiled ops:
 var <initial value>
-inc <dst>
-dec <dst>
+inc <dst>, dst can't be pointer
+dec <dst>, dst can't be pointer
 jmp <dst>
 hlt
-rse automatically resets err flag
-rsn automatically resets neg flag
-rsz automatically resets zero flag
-not <dst>
-chk <dst>, doesn't automatically sets the flags
-neg <dst>
-sub <dst> <src>, src can't be a literal
-cmp <dst> <src>, src can't be a literal, checks dst-src without changing dst, doesn't automatically sets the flags
-cma <dst> <src>, src can't be a literal, checks dst+src without changing dst, doesn't automatically sets the flags
+rsf <mask>, resets to 0 all flags that are 0 in the mask
+rse, resets err flag
+rsn, resets neg flag
+rsz, resets zero flag
+not <dst>, dst can't be pointer
+chk <src>, src shouldn't be a port and can't be a pointer, doesn't automatically sets the flags
+neg <dst>, dst can't be pointer
+sub <dst> <src>, src must be a cell
+cmp <dst> <src>, src must be a cell, checks dst-src without changing dst, doesn't automatically sets the flags
+cma <dst> <src>, src must be a cell, checks dst+src without changing dst, doesn't automatically sets the flags
 cmx <dst> <src1> <src2>, checks dst+src1, sets dst to dst+src1+src2, doesn't automatically sets the flags

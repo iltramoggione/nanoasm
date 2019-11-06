@@ -36,7 +36,7 @@ uint8_t read_ram(ram_t *ram, cell_addr_t addr)
 			}
 			else
 			{
-				ram->data[RAM_FLAGS]&=~1<<port_bit[i];
+				ram->data[RAM_FLAGS]&=~(1<<port_bit[i]);
 			}
 		}
 		return ram->data[RAM_FLAGS];
@@ -57,24 +57,21 @@ void write_ram(ram_t *ram, cell_addr_t addr, cell_val_t data)
 	if(addr==RAM_PORT2)
 	{
 		channel_write(ram->port[2],data);
-		show_channel(ram->port[2]);
 		return;
 	}
 	if(addr==RAM_PORT3)
 	{
 		channel_write(ram->port[3],data);
-		show_channel(ram->port[3]);
 		return;
 	}
 	write_ram_raw(ram,addr,data);
 }
 
-uint8_t set_op(ram_t *ram, cell_addr_t addr, uint8_t op, cell_val_t arg1, cell_val_t arg2, uint8_t ptr, uint8_t val, uint8_t set, uint8_t err, uint8_t ifn, uint8_t ifz)
+uint8_t set_op(ram_t *ram, cell_addr_t addr, uint8_t op, cell_val_t arg1, cell_val_t arg2, uint8_t arg, uint8_t set, uint8_t err, uint8_t ifn, uint8_t ifz)
 {
 	op_t opr;
 	opr.op=op;
-	opr.ptr=ptr;
-	opr.val=val;
+	opr.arg=arg;
 	opr.set=set;
 	opr.err=err;
 	opr.ifn=ifn;
@@ -89,9 +86,7 @@ uint8_t set_op(ram_t *ram, cell_addr_t addr, uint8_t op, cell_val_t arg1, cell_v
 uint8_t set_val(ram_t *ram, cell_addr_t addr, cell_val_t val)
 {
 	write_ram_raw(ram,addr,val);
-	//printf("@" PRINTF_HEX "(" PRINTF_INT ") value: ",addr,addr);
 	show_cell(ram,addr);
-	//printf("\n");
 	return addr+1;
 }
 

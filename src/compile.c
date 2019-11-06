@@ -13,13 +13,11 @@ void op_def_new(op_def_t *ops, int *ops_size, char name[16], char *str)
 	op.flagsetter=0;
 	int pos=0;
 	int opcode=0;
-	//printf("new op %s\n",name);
 	for(int i=0,end=0;!end;i++)
 	{
 		pos=trim(str,pos);
 		opcode=get_op(ops,*ops_size,str,pos);
 		pos=skip(str,pos);
-		//printf("subop %d\n",opcode);
 		switch(opcode)
 		{
 			case OP_END:
@@ -35,19 +33,15 @@ void op_def_new(op_def_t *ops, int *ops_size, char name[16], char *str)
 			default:
 				op.ops[op.ops_size]=opcode;
 				op.ops_size++;
-				//printf("subop %d(%s)\n",opcode,ops[opcode].name);
 				for(int j=0;j<ops[opcode].nargs;j++)
 				{
 					op.args[op.args_size]=get_val(str,pos);
 					pos=skip(str,pos);
 					op.args_size++;
-					//printf("arg %d\n",j);
-					//show_val(op.args[op.args_size-1]);
 					if(op.args[op.args_size-1].arg)
 					{
 						op.nargs=max(op.nargs,op.args[op.args_size-1].val+1);
 					}
-					//printf("nargs %d\n",op.nargs);
 				}
 				op_flags_t flags=get_flags(str,pos);
 				if(flags.set || flags.err || flags.ifn || flags.ifz)
@@ -138,44 +132,45 @@ void calc_ref(ram_t *ram, cell_addr_t pc, char *str, op_def_t *ops, int ops_size
 				break;
 		}
 	}
-	//*ref_size=i;
+	*ref_size=i;
 }
 
 void compile_op(ram_t *ram, cell_addr_t *pc, op_def_t *ops, int ops_size, int op, val_t args[16], op_flags_t flags, int flagsetter, int *code_ops, int *code_ops_size, int op_pos)
 {
 	if(op>=ops_size) return;
-	//printf("op %d(%s)\n",op,ops[op].name);
 	if(op<4)
 	{
 		code_ops[*pc]=op_pos;
 		*code_ops_size=*pc;
-		//printf("base op\n");
-		*pc=set_op(ram,*pc,ops[op].ops[0],args[0].val,args[1].val,args[0].ptr,args[1].lit,flags.set & flagsetter,flags.err,flags.ifn,flags.ifz);
+		int arg=arg_cell_cell;
+		if(args[0].ptr)
+		{
+			arg=arg_ptr_cell;
+		}
+		else if(args[1].ptr)
+		{
+			arg=arg_cell_ptr;
+		}
+		else if(args[1].lit)
+		{
+			arg=arg_cell_lit;
+		}
+		*pc=set_op(ram,*pc,ops[op].ops[0],args[0].val,args[1].val,arg,flags.set & flagsetter,flags.err,flags.ifn,flags.ifz);
 		return;
 	}
-	//printf("complex op\n");
 	val_t unargs[16];
 	memcpy(unargs,ops[op].args,sizeof(val_t)*16);
 	for(int i=0;i<ops[op].args_size;i++)
 	{
-		//printf("unarg %d\n\t",i);
 		if(unargs[i].arg) unargs[i]=args[unargs[i].val];
-		//show_val(unargs[i]);
 	}
 	int argn=0;
 	for(int i=0;i<ops[op].ops_size;i++)
 	{
 		val_t subargs[16];
 		memcpy(subargs,unargs+argn,sizeof(val_t)*ops[ops[op].ops[i]].nargs);
-		for(int j=0;j<ops[ops[op].ops[i]].nargs;j++)
-		{
-			//printf("subarg %d(%d)\n\t",j,argn+j);
-			//show_val(subargs[j]);
-		}
 		argn+=ops[ops[op].ops[i]].nargs;
-		//printf("sub op %d\n",i);
 		compile_op(ram,pc,ops,ops_size,ops[op].ops[i],subargs,flags,ops[op].flagsetter==i,code_ops,code_ops_size,op_pos);
-		//printf("/sub op %d\n",i);
 	}
 }
 
@@ -197,7 +192,7 @@ void compile(ram_t *ram, cell_addr_t *pc, char *str, int *code_ops, int *code_op
 	op_def_new(ops,&ops_size,"rsz","rsf 'b11111101 f");
 	op_def_new(ops,&ops_size,"rsn","rsf 'b11111011 f");
 	op_def_new(ops,&ops_size,"not","nor /0 '0 f");
-	op_def_new(ops,&ops_size,"chk","add /0 '0 f");
+	op_def_new(ops,&ops_size,"chk","mov /0 /0 f");
 	op_def_new(ops,&ops_size,"neg","not /0 inc /0 f");
 	op_def_new(ops,&ops_size,"sub","neg /1 add /0 /1 f neg /1");
 	op_def_new(ops,&ops_size,"cmp","sub /0 /1 f add /0 /1");

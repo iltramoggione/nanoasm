@@ -26,7 +26,7 @@ void show_channel(channel_t *channel)
 	pthread_mutex_unlock(&channel->mutex);
 }
 
-void show_ram(ram_t *ram, int show_all, int show_addr)
+void show_ram(ram_t *ram, int show_all, int show_addr, int show_channels)
 {
 	for(int i=0,lasti=-1;i<RAM_SIZE;i++)
 	{
@@ -38,7 +38,7 @@ void show_ram(ram_t *ram, int show_all, int show_addr)
 		}
 	}
 	fprintf(STDDEBUG,"\n");
-	for(int i=0;i<4;i++)
+	for(int i=0;i<4 && show_channels;i++)
 	{
 		fprintf(STDDEBUG,"channel %d: ",i);
 		show_channel(ram->port[i]);
@@ -50,8 +50,7 @@ void show_op(ram_t *ram, cell_addr_t pc)
 	op_t op;
 	op.data=read_ram_raw(ram,pc);
 	uint8_t op_op=op.op;
-	uint8_t op_ptr=op.ptr;
-	uint8_t op_val=op.val;
+	uint8_t op_arg=op.arg;
 	uint8_t op_set=op.set;
 	uint8_t op_err=op.err;
 	uint8_t op_ifn=op.ifn;
@@ -78,7 +77,7 @@ void show_op(ram_t *ram, cell_addr_t pc)
 	uint8_t arg1=read_ram_raw(ram,parg1);
 	uint8_t arg2;
 	fprintf(STDDEBUG," %s",op_name);
-	if(op.ptr)
+	if(op.arg==arg_ptr_cell)
 	{
 		arg1=read_ram_raw(ram,arg1);
 		fprintf(STDDEBUG," *[" PRINTF_HEX "]=[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg1,read_ram_raw(ram,parg1),arg1,arg1);
@@ -87,10 +86,16 @@ void show_op(ram_t *ram, cell_addr_t pc)
 	{
 		fprintf(STDDEBUG," [" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg1,arg1,arg1);
 	}
-	if(op.val)
+	if(op.arg==arg_cell_lit)
 	{
 		arg2=parg2;
 		fprintf(STDDEBUG," \'" PRINTF_HEX "(" PRINTF_INT ")\'",parg2,parg2);
+	}
+	else if(op.arg==arg_cell_ptr)
+	{
+		parg2=read_ram_raw(ram,parg2);
+		arg2=read_ram_raw(ram,parg2);
+		fprintf(STDDEBUG," *[" PRINTF_HEX "]=[" PRINTF_HEX "]=" PRINTF_HEX "(" PRINTF_INT ")",parg2,read_ram_raw(ram,parg2),arg2,arg2);
 	}
 	else
 	{
@@ -120,8 +125,7 @@ void show_op(ram_t *ram, cell_addr_t pc)
 	}
 	fprintf(STDDEBUG," : " PRINTF_HEX " (",op.data);
 	fprintf(STDDEBUG,"op:" PRINTF_BITS ", ",op_op);
-	fprintf(STDDEBUG,"ptr:" PRINTF_BITS ", ",op_ptr);
-	fprintf(STDDEBUG,"val:" PRINTF_BITS ", ",op_val);
+	fprintf(STDDEBUG,"arg:" PRINTF_BITS ", ",op_arg);
 	fprintf(STDDEBUG,"set:" PRINTF_BITS ", ",op_set);
 	fprintf(STDDEBUG,"err:" PRINTF_BITS ", ",op_err);
 	fprintf(STDDEBUG,"ifn:" PRINTF_BITS ", ",op_ifn);
@@ -141,14 +145,14 @@ void show_flags(ram_t *ram)
 	uint8_t flags_port2=flags.port2;
 	uint8_t flags_port3=flags.port3;
 	fprintf(STDDEBUG,"flags: " PRINTF_HEX " (",flags.data);
-	fprintf(STDDEBUG,"neg:" PRINTF_BITS ", ",flags_neg);
-	fprintf(STDDEBUG,"zero:" PRINTF_BITS ", ",flags_zero);
-	fprintf(STDDEBUG,"err:" PRINTF_BITS ", ",flags_err);
-	fprintf(STDDEBUG,"unused:" PRINTF_BITS ", ",flags_unused);
 	fprintf(STDDEBUG,"port0:" PRINTF_BITS ", ",flags_port0);
 	fprintf(STDDEBUG,"port1:" PRINTF_BITS ", ",flags_port1);
 	fprintf(STDDEBUG,"port2:" PRINTF_BITS ", ",flags_port2);
-	fprintf(STDDEBUG,"port3:" PRINTF_BITS ")\n",flags_port3);
+	fprintf(STDDEBUG,"port3:" PRINTF_BITS ", ",flags_port3);
+	fprintf(STDDEBUG,"unused:" PRINTF_BITS ", ",flags_unused);
+	fprintf(STDDEBUG,"neg:" PRINTF_BITS ", ",flags_neg);
+	fprintf(STDDEBUG,"zero:" PRINTF_BITS ", ",flags_zero);
+	fprintf(STDDEBUG,"err:" PRINTF_BITS ")\n",flags_err);
 }
 
 void show_val(val_t val)
@@ -195,7 +199,7 @@ void show_refs(cell_addr_t *ref, int ref_size)
 	fprintf(STDDEBUG,"refs: %d\n",ref_size);
 	for(int i=0;i<ref_size;i++)
 	{
-		if(ref[i]) fprintf(STDDEBUG,"%d: [" PRINTF_HEX "]\n",i,ref[i]);
+		fprintf(STDDEBUG,"%d: [" PRINTF_HEX "]\n",i,ref[i]);
 	}
 }
 

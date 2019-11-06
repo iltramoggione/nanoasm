@@ -20,10 +20,14 @@
 #define RAM_PORT1 (RAM_SIZE - 3)
 #define RAM_PORT2 (RAM_SIZE - 4)
 #define RAM_PORT3 (RAM_SIZE - 3)
-#define RAM_PORT0_BIT (7)
-#define RAM_PORT1_BIT (6)
-#define RAM_PORT2_BIT (5)
-#define RAM_PORT3_BIT (4)
+#define RAM_PORT0_BIT 7
+#define RAM_PORT1_BIT 6
+#define RAM_PORT2_BIT 5
+#define RAM_PORT3_BIT 4
+#define RAM_UNUSED_BIT 3
+#define RAM_NEG_BIT 2
+#define RAM_ZERO_BIT 1
+#define RAM_ERR_BIT 0
 #define RAM_PC_HLT (RAM_SIZE - 4)
 #define OP_SIZE 3
 #define OP_ARG_1 1
@@ -78,8 +82,7 @@ typedef union{
 		uint8_t ifn:1;
 		uint8_t err:1;
 		uint8_t set:1;
-		uint8_t val:1;
-		uint8_t ptr:1;
+		uint8_t arg:2;
 		uint8_t op:2;
 	};
 } op_t;
@@ -107,6 +110,13 @@ enum{
 };
 
 enum{
+	arg_cell_cell,
+	arg_cell_lit,
+	arg_ptr_cell,
+	arg_cell_ptr,
+};
+
+enum{
 	if_no,
 	if_eq,
 	if_lt,
@@ -126,7 +136,7 @@ typedef struct{
 typedef struct{
 	pthread_t thread;
 	channel_t *channel;
-	void (*function)(void *arg, uint8_t data);
+	int (*function)(void *arg, uint8_t *data);
 	void *arg;
 } thread_channel_t;
 

@@ -12,7 +12,7 @@ void execute(ram_t *ram, int max_op, char *code, int *code_ops, int code_ops_siz
 	op_t op;
 	for(int i=0;;i++)
 	{
-		show_ram(ram,1,1);
+		show_ram(ram,1,1,0);
 		show_flags(ram);
 		pc=read_ram(ram,RAM_PC);
 		write_ram(ram,RAM_PC,pc+OP_SIZE);
@@ -27,14 +27,19 @@ void execute(ram_t *ram, int max_op, char *code, int *code_ops, int code_ops_siz
 		flags.data=read_ram(ram,RAM_FLAGS);
 		parg1=read_ram(ram,pc+OP_ARG_1);
 		parg2=read_ram(ram,pc+OP_ARG_2);
-		if(op.ptr)
+		if(op.arg==arg_ptr_cell)
 		{
 			arg1=read_ram(ram,parg1);
 			parg1=arg1;
 		}
-		if(op.val)
+		if(op.arg==arg_cell_lit)
 		{
 			arg2=parg2;
+		}
+		else if(op.arg==arg_cell_ptr)
+		{
+			parg2=read_ram(ram,parg2);
+			arg2=read_ram(ram,parg2);
 		}
 		else
 		{
@@ -64,8 +69,8 @@ void execute(ram_t *ram, int max_op, char *code, int *code_ops, int code_ops_siz
 			}
 			if(op.set)
 			{
-				flags.zero = read_ram(ram,parg1)==0;
-				flags.neg = calc_neg(read_ram(ram,parg1));
+				flags.zero=read_ram(ram,parg1)==0;
+				flags.neg=calc_neg(read_ram(ram,parg1));
 				flags.err=err;
 				write_ram(ram,RAM_FLAGS,flags.data);
 			}

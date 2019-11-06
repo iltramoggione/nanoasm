@@ -83,58 +83,84 @@ void *channel_writing(void *arg)
 		{
 			return NULL;
 		}
-		this->function(this->arg, data);
+		if(this->function(this->arg,&data))
+		{
+			channel_close(this->channel);
+			return NULL;
+		}
 	}
 }
 
-void null_writer(void *arg, uint8_t data)
+void *channel_reading(void *arg)
 {
-	return;
+	thread_channel_t *this=(thread_channel_t*)arg;
+	for(;;)
+	{
+		if(channel_is_closed(this->channel))
+		{
+			return NULL;
+		}
+		uint8_t data;
+		if(this->function(this->arg,&data))
+		{
+			channel_close(this->channel);
+			return NULL;
+		}
+		channel_write(this->channel,data);
+	}
 }
 
-void stdout_writer(void *arg, uint8_t data)
+int null_writer(void *arg, uint8_t *data)
 {
-	printf("%c",data);
+	return 1;
 }
 
-void stderr_writer(void *arg, uint8_t data)
+int stdout_writer(void *arg, uint8_t *data)
 {
-	fprintf(stderr,"%c",data);
+	printf("%c",*data);
+	return 0;
 }
 
-void stddebug_writer(void *arg, uint8_t data)
+int stderr_writer(void *arg, uint8_t *data)
 {
-	fprintf(STDDEBUG,"%c",data);
+	fprintf(stderr,"%c",*data);
+	return 0;
 }
 
-thread_channel_t *new_writing_channel(void (*function)(void *arg, uint8_t data))
+int stddebug_writer(void *arg, uint8_t *data)
+{
+	fprintf(STDDEBUG,"%c",*data);
+	return 0;
+}
+
+thread_channel_t *new_writing_channel(int (*function)(void *arg, uint8_t *data), void *arg)
 {
 	thread_channel_t *r=malloc(sizeof(thread_channel_t));
 	r->channel=new_channel_t();
 	r->function=function;
-	r->arg=NULL;
+	r->arg=arg;
 	pthread_create(&r->thread,NULL,channel_writing,r);
 	return r;
 }
 
 thread_channel_t *new_null_writer_channel()
 {
-	return new_writing_channel(null_writer);
+	return new_writing_channel(null_writer,NULL);
 }
 
 thread_channel_t *new_stdout_writer_channel()
 {
-	return new_writing_channel(stdout_writer);
+	return new_writing_channel(stdout_writer,NULL);
 }
 
 thread_channel_t *new_stderr_writer_channel()
 {
-	return new_writing_channel(stderr_writer);
+	return new_writing_channel(stderr_writer,NULL);
 }
 
 thread_channel_t *new_stddebug_writer_channel()
 {
-	return new_writing_channel(stddebug_writer);
+	return new_writing_channel(stddebug_writer,NULL);
 }
 
 #endif

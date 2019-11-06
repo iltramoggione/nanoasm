@@ -10,26 +10,29 @@ RMDIR   :=rm -rf
 CC      :=gcc
 BIN     :=./bin
 OBJ     :=./obj
+DEP     :=./dep
 INCLUDE :=./include
 SRC     :=./src
+DEPFLAGS:= -MT $@ -MMD -MP -MF $(OBJ)/$*.d
 SRCS    :=$(wildcard $(SRC)/*.c)
 OBJS    :=$(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(SRCS))
+DEPS    :=$(patsubst $(SRC)/%.c,$(DEP)/%.d,$(SRCS))
 EXE     :=$(BIN)/nanoasm$(EXEEXT)
 LOG     :=log.txt
 CFLAGS  :=-Wall -Wno-comment -Werror -lpthread -std=c11
 LDLIBS  :=
 
-.PHONY: build run log err tee cleanobj cleanbin clean all allrun alllog allerr alltee
+.PHONY: build run log err tee cleanobj cleanbin cleandep cleannotbin clean all allrun alllog allerr alltee
 
 build: $(EXE)
 
 $(EXE): $(OBJS) | $(BIN)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
-$(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ)/%.o: $(SRC)/%.c | $(OBJ) $(DEP)
+	$(CC) $(CFLAGS) -MT $@ -MMD -MP -MF $(DEP)/$*.d -c $< -o $@
 
-$(BIN) $(OBJ):
+$(BIN) $(OBJ) $(DEP):
 	$(MKDIR) $@
 
 run: $(EXE)
@@ -50,7 +53,12 @@ cleanobj:
 cleanbin:
 	$(RMDIR) $(BIN)
 
-clean: cleanobj cleanbin
+cleandep:
+	$(RMDIR) $(DEP)
+
+cleannotbin: cleanobj cleandep
+
+clean: cleannotbin cleanbin
 
 all: clean build cleanobj
 
@@ -61,3 +69,5 @@ alllog: clean build cleanobj log
 allerr: clean build cleanobj err
 
 alltee: clean build cleanobj tee
+
+include $(wildcard $(DEPS))

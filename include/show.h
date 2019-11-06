@@ -7,7 +7,7 @@
 void show_line(char *str, int pos);
 void show_cell(ram_t *ram, cell_addr_t addr);
 void show_channel(channel_t *channel);
-void show_ram(ram_t *ram, int show_all, int show_addr);
+void show_ram(ram_t *ram, int show_all, int show_addr, int show_channels);
 void show_op(ram_t *ram, cell_addr_t pc);
 void show_flags(ram_t *ram);
 void show_val(val_t val);

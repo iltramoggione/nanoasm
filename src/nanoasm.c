@@ -95,21 +95,29 @@ int main(int argc, char **argv)
 	///*69*/"var '99\n"//for ctrl+f
 	//;
 	char *code=
-	"mov 252 'cH\n"
-	"mov 252 'ce\n"
-	"mov 252 'cl\n"
-	"mov 252 'cl\n"
-	"mov 252 'co\n"
-	"mov 252 'c,\n"
-	"mov 252 'c \n"
-	"mov 252 'cw\n"
-	"mov 252 'co\n"
-	"mov 252 'cr\n"
-	"mov 252 'cl\n"
-	"mov 252 'cd\n"
-	"mov 252 'c!\n"
-	"mov 252 'c\n\n"
-	"hlt\n";
+	/*00*/"add *&7 &6 f\n"// to ptr and zero
+	/*01*/"jmp '&5 =\n"// to hlt
+	/*02*/"mov 252 *&7\n"// to ptr
+	/*03*/"inc &7\n"// to ptr
+	/*04*/"jmp '&0\n"// to start
+	/*05*/"hlt\n"
+	/*06*/"var '0\n"// zero
+	/*07*/"var '&8\n"// ptr // to data
+	/*08*/"var 'cH\n"// data
+	/*09*/"var 'ce\n"
+	/*10*/"var 'cl\n"
+	/*11*/"var 'cl\n"
+	/*12*/"var 'co\n"
+	/*13*/"var 'c,\n"
+	/*14*/"var 'c \n"
+	/*15*/"var 'cw\n"
+	/*16*/"var 'co\n"
+	/*17*/"var 'cr\n"
+	/*18*/"var 'cl\n"
+	/*19*/"var 'cd\n"
+	/*20*/"var 'c!\n"
+	/*21*/"var 'c\n\n"
+	/*22*/"var '0\n";
 	fprintf(STDDEBUG,"code: %s\n",code);
 	thread_channel_t *tp1=new_stdout_writer_channel();
 	thread_channel_t *tp2=new_null_writer_channel();
@@ -119,7 +127,7 @@ int main(int argc, char **argv)
 		tp1->channel,
 		tp2->channel
 	};
-	compile_execute(code,100,port);
+	compile_execute(code,1000,port);
 	fflush(stdout);
 	pthread_join(tp1->thread,NULL);
 	pthread_join(tp2->thread,NULL);
