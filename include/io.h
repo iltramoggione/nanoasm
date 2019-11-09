@@ -12,14 +12,19 @@ void channel_write(channel_t *channel, cell_t data);
 void channel_close(channel_t *channel);
 void *channel_writing(void *arg);
 void *channel_reading(void *arg);
-int null_writer(void *arg, uint8_t *data);
+int null_reader_writer(void *arg, uint8_t *data);
 int stdout_writer(void *arg, uint8_t *data);
 int stderr_writer(void *arg, uint8_t *data);
 int stddebug_writer(void *arg, uint8_t *data);
-thread_channel_t *new_writing_channel(int (*function)(void *arg, uint8_t *data), void *arg);
+int stdin_reader(void *arg, uint8_t *data);
+thread_channel_t *new_channel(void* (*type)(void *arg), int (*function)(void *arg, uint8_t *data), void *arg);
+thread_channel_t *new_channel_writing(int (*function)(void *arg, uint8_t *data), void *arg);
+thread_channel_t *new_channel_reading(int (*function)(void *arg, uint8_t *data), void *arg);
 thread_channel_t *new_null_writer_channel();
 thread_channel_t *new_stdout_writer_channel();
 thread_channel_t *new_stderr_writer_channel();
 thread_channel_t *new_stddebug_writer_channel();
+thread_channel_t *new_null_reader_channel();
+thread_channel_t *new_stdin_reader_channel();
 
 #endif

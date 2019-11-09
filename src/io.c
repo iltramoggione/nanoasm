@@ -110,7 +110,7 @@ void *channel_reading(void *arg)
 	}
 }
 
-int null_writer(void *arg, uint8_t *data)
+int null_reader_writer(void *arg, uint8_t *data)
 {
 	return 1;
 }
@@ -133,34 +133,63 @@ int stddebug_writer(void *arg, uint8_t *data)
 	return 0;
 }
 
-thread_channel_t *new_writing_channel(int (*function)(void *arg, uint8_t *data), void *arg)
+int stdin_reader(void *arg, uint8_t *data)
+{
+	int c;
+	c=fgetc(stdin);
+	if(c==EOF) return 1;
+	*data=(uint8_t)c;
+	return 0;
+}
+
+thread_channel_t *new_channel(void* (*type)(void *arg), int (*function)(void *arg, uint8_t *data), void *arg)
 {
 	thread_channel_t *r=malloc(sizeof(thread_channel_t));
 	r->channel=new_channel_t();
 	r->function=function;
 	r->arg=arg;
-	pthread_create(&r->thread,NULL,channel_writing,r);
+	pthread_create(&r->thread,NULL,type,r);
 	return r;
+}
+
+thread_channel_t *new_channel_writing(int (*function)(void *arg, uint8_t *data), void *arg)
+{
+	return new_channel(channel_writing,function,arg);
+}
+
+thread_channel_t *new_channel_reading(int (*function)(void *arg, uint8_t *data), void *arg)
+{
+	return new_channel(channel_reading,function,arg);
 }
 
 thread_channel_t *new_null_writer_channel()
 {
-	return new_writing_channel(null_writer,NULL);
+	return new_channel_writing(null_reader_writer,NULL);
 }
 
 thread_channel_t *new_stdout_writer_channel()
 {
-	return new_writing_channel(stdout_writer,NULL);
+	return new_channel_writing(stdout_writer,NULL);
 }
 
 thread_channel_t *new_stderr_writer_channel()
 {
-	return new_writing_channel(stderr_writer,NULL);
+	return new_channel_writing(stderr_writer,NULL);
 }
 
 thread_channel_t *new_stddebug_writer_channel()
 {
-	return new_writing_channel(stddebug_writer,NULL);
+	return new_channel_writing(stddebug_writer,NULL);
+}
+
+thread_channel_t *new_null_reader_channel()
+{
+	return new_channel_reading(null_reader_writer,NULL);
+}
+
+thread_channel_t *new_stdin_reader_channel()
+{
+	return new_channel_reading(stdin_reader,NULL);
 }
 
 #endif

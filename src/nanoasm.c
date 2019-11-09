@@ -94,42 +94,55 @@ int main(int argc, char **argv)
 	///*68*/"var '0\n"
 	///*69*/"var '99\n"//for ctrl+f
 	//;
+	//char *code=
+	///*00*/"add *&7 &6 f\n"// to ptr and zero
+	///*01*/"jmp '&5 =\n"// to hlt
+	///*02*/"mov 252 *&7\n"// to ptr
+	///*03*/"inc &7\n"// to ptr
+	///*04*/"jmp '&0\n"// to start
+	///*05*/"hlt\n"
+	///*06*/"var '0\n"// zero
+	///*07*/"var '&8\n"// ptr // to data
+	///*08*/"var 'cH\n"// data
+	///*09*/"var 'ce\n"
+	///*10*/"var 'cl\n"
+	///*11*/"var 'cl\n"
+	///*12*/"var 'co\n"
+	///*13*/"var 'c,\n"
+	///*14*/"var 'c \n"
+	///*15*/"var 'cw\n"
+	///*16*/"var 'co\n"
+	///*17*/"var 'cr\n"
+	///*18*/"var 'cl\n"
+	///*19*/"var 'cd\n"
+	///*20*/"var 'c!\n"
+	///*21*/"var 'c\n\n"
+	///*22*/"var '0\n";
 	char *code=
-	/*00*/"add *&7 &6 f\n"// to ptr and zero
-	/*01*/"jmp '&5 =\n"// to hlt
-	/*02*/"mov 252 *&7\n"// to ptr
-	/*03*/"inc &7\n"// to ptr
+	/*00*/"mov &6 252\n"// to data
+	/*01*/"cmx &6 '-10 '10 f\n"// to data
+	/*02*/"jmp '&5 =\n"// to hlt
+	/*03*/"mov 252 &6\n"// to data
 	/*04*/"jmp '&0\n"// to start
 	/*05*/"hlt\n"
-	/*06*/"var '0\n"// zero
-	/*07*/"var '&8\n"// ptr // to data
-	/*08*/"var 'cH\n"// data
-	/*09*/"var 'ce\n"
-	/*10*/"var 'cl\n"
-	/*11*/"var 'cl\n"
-	/*12*/"var 'co\n"
-	/*13*/"var 'c,\n"
-	/*14*/"var 'c \n"
-	/*15*/"var 'cw\n"
-	/*16*/"var 'co\n"
-	/*17*/"var 'cr\n"
-	/*18*/"var 'cl\n"
-	/*19*/"var 'cd\n"
-	/*20*/"var 'c!\n"
-	/*21*/"var 'c\n\n"
-	/*22*/"var '0\n";
+	/*06*/"var '0\n"// data
+	;
 	fprintf(STDDEBUG,"code: %s\n",code);
-	thread_channel_t *tp1=new_stdout_writer_channel();
-	thread_channel_t *tp2=new_null_writer_channel();
+	thread_channel_t *tp1=new_stdin_reader_channel();
+	thread_channel_t *tp2=new_null_reader_channel();
+	thread_channel_t *tp3=new_stdout_writer_channel();
+	thread_channel_t *tp4=new_null_writer_channel();
 	channel_t *port[4]={
-		new_channel_t(),
-		new_channel_t(),
 		tp1->channel,
-		tp2->channel
+		tp2->channel,
+		tp3->channel,
+		tp4->channel
 	};
 	compile_execute(code,1000,port);
 	fflush(stdout);
 	pthread_join(tp1->thread,NULL);
 	pthread_join(tp2->thread,NULL);
+	pthread_join(tp3->thread,NULL);
+	pthread_join(tp4->thread,NULL);
 	return 0;
 }
