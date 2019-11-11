@@ -142,6 +142,19 @@ int stdin_reader(void *arg, uint8_t *data)
 	return 0;
 }
 
+int file_writer(void *arg, uint8_t *data)
+{
+	fwrite(data,1,1,(FILE*)arg);
+	return 0;
+}
+
+int file_reader(void *arg, uint8_t *data)
+{
+	fread(data,1,1,(FILE*)arg);
+	if(feof((FILE*)arg)) return 1;
+	return 0;
+}
+
 thread_channel_t *new_channel(void* (*type)(void *arg), int (*function)(void *arg, uint8_t *data), void *arg)
 {
 	thread_channel_t *r=malloc(sizeof(thread_channel_t));
@@ -182,6 +195,11 @@ thread_channel_t *new_stddebug_writer_channel()
 	return new_channel_writing(stddebug_writer,NULL);
 }
 
+thread_channel_t *new_file_writer_channel(FILE *f)
+{
+	return new_channel_writing(file_writer,f);
+}
+
 thread_channel_t *new_null_reader_channel()
 {
 	return new_channel_reading(null_reader_writer,NULL);
@@ -190,6 +208,11 @@ thread_channel_t *new_null_reader_channel()
 thread_channel_t *new_stdin_reader_channel()
 {
 	return new_channel_reading(stdin_reader,NULL);
+}
+
+thread_channel_t *new_file_reader_channel(FILE *f)
+{
+	return new_channel_reading(file_reader,f);
 }
 
 #endif

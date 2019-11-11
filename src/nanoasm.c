@@ -128,9 +128,11 @@ int main(int argc, char **argv)
 	/*06*/"var '0\n"// data
 	;
 	fprintf(STDDEBUG,"code: %s\n",code);
+	FILE *f=fopen("test.txt","w");
 	thread_channel_t *tp1=new_stdin_reader_channel();
 	thread_channel_t *tp2=new_null_reader_channel();
-	thread_channel_t *tp3=new_stdout_writer_channel();
+	//thread_channel_t *tp3=new_stdout_writer_channel();
+	thread_channel_t *tp3=new_file_writer_channel(f);
 	thread_channel_t *tp4=new_null_writer_channel();
 	channel_t *port[4]={
 		tp1->channel,
@@ -144,5 +146,6 @@ int main(int argc, char **argv)
 	pthread_join(tp2->thread,NULL);
 	pthread_join(tp3->thread,NULL);
 	pthread_join(tp4->thread,NULL);
+	fclose(f);
 	return 0;
 }

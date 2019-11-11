@@ -5,3 +5,4 @@ dep/*
 *.exe
 log.txt
 commit.txt
+test*
