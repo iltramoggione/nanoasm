@@ -19,7 +19,7 @@ void execute(ram_t *ram, int max_op, char *code, int *code_ops, int code_ops_siz
 		if(pc>=RAM_PC_HLT) break;
 		if(i>=max_op && max_op!=0)
 		{
-			fprintf(STDDEBUG,"aborted execution\n");
+			DEBUG("aborted execution\n");
 			break;
 		}
 		show_op_code(ram,pc,code,code_ops,code_ops_size);

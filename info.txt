@@ -44,7 +44,7 @@ values can also be negative, hexadecimal, binary or octal, specified with -, x, 
 instead of a number the value can be a single character after c
 flags:
 f set flags
-e execute if error flag is set
+e execute only if error flag is set
 < execute if <0 flag is set
 = execute if =0 flag is set
 native ops:

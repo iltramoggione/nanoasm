@@ -118,34 +118,66 @@ int main(int argc, char **argv)
 	///*20*/"var 'c!\n"
 	///*21*/"var 'c\n\n"
 	///*22*/"var '0\n";
+	//char *code=
+	///*00*/"mov &6 252\n"// to data
+	///*01*/"cmx &6 '-10 '10 f\n"// to data
+	///*02*/"jmp '&5 =\n"// to hlt
+	///*03*/"mov 252 &6\n"// to data
+	///*04*/"jmp '&0\n"// to start
+	///*05*/"hlt\n"
+	///*06*/"var '0\n"// data
+	//;
 	char *code=
-	/*00*/"mov &6 252\n"// to data
-	/*01*/"cmx &6 '-10 '10 f\n"// to data
-	/*02*/"jmp '&5 =\n"// to hlt
-	/*03*/"mov 252 &6\n"// to data
-	/*04*/"jmp '&0\n"// to start
-	/*05*/"hlt\n"
-	/*06*/"var '0\n"// data
+	/*00*/"mov 252 &16\n"// to hd
+	/*01*/"mov 252 &17\n"// to hd+1
+	/*02*/"mov 252 &18\n"// to hd+2
+	/*03*/"mov 252 &19\n"// to hd+3
+	/*04*/"mov 252 &20\n"// to hd+4
+	/*05*/"mov &15 252\n"// to data
+	/*06*/"cmx &15 '-0 '0 f\n"// to data
+	/*07*/"jmp '&14 =\n"// to halt
+	/*08*/"mov 253 &15\n"// to data
+	/*09*/"add &20 '1 f\n"// to n// to one
+	/*10*/"jmp '&12 e\n"// to next
+	/*11*/"jmp '&0\n"// to start
+	/*12*/"add &19 '1\n"// next// to n-1// to one
+	/*13*/"jmp '&0\n"// end// to start
+	/*14*/"hlt\n"
+	/*15*/"var '0\n"// data
+	/*16*/"var 'cr\n"// hd
+	/*17*/"var '0\n"
+	/*18*/"var '0\n"
+	/*19*/"var '0\n"
+	/*20*/"var '0\n"// n
 	;
-	fprintf(STDDEBUG,"code: %s\n",code);
-	FILE *f=fopen("test.txt","w");
-	thread_channel_t *tp1=new_stdin_reader_channel();
+	DEBUG("code: %s\n",code);
+	FILE *f=fopen("test.txt","r+");
+	fseek(f,256L*256*256*256,SEEK_SET);
+	fputc('\0',f);
+	fclose(f);
+	//FILE *f=fopen("test.txt","w");
+	disk_t *disk=new_disk_t("test.txt");
+	//thread_channel_t *tp1=new_stdin_reader_channel();
+	thread_channel_t *tp1=new_disk_reader_channel(disk);
 	thread_channel_t *tp2=new_null_reader_channel();
 	//thread_channel_t *tp3=new_stdout_writer_channel();
-	thread_channel_t *tp3=new_file_writer_channel(f);
-	thread_channel_t *tp4=new_null_writer_channel();
+	//thread_channel_t *tp3=new_file_writer_channel(f);
+	thread_channel_t *tp3=new_disk_writer_channel(disk);
+	//thread_channel_t *tp4=new_null_writer_channel();
+	thread_channel_t *tp4=new_stdout_writer_channel();
 	channel_t *port[4]={
 		tp1->channel,
 		tp2->channel,
 		tp3->channel,
 		tp4->channel
 	};
-	compile_execute(code,1000,port);
+	compile_execute(code,100000,port);
 	fflush(stdout);
-	pthread_join(tp1->thread,NULL);
-	pthread_join(tp2->thread,NULL);
-	pthread_join(tp3->thread,NULL);
-	pthread_join(tp4->thread,NULL);
-	fclose(f);
+	//fclose(f);
+	free_disk_t(disk);
+	free_thread_channel_t(tp1);
+	free_thread_channel_t(tp2);
+	free_thread_channel_t(tp3);
+	free_thread_channel_t(tp4);
 	return 0;
 }

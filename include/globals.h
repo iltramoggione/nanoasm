@@ -42,6 +42,8 @@
 
 //#define STDDEBUG stdout
 #define STDDEBUG stderr
+#define DEBUG_PRINT 0
+#define DEBUG(...) do{if(DEBUG_PRINT){fprintf(STDDEBUG,__VA_ARGS__);}}while(0)
 
 typedef uint8_t cell_t;
 typedef uint8_t cell_val_t;
@@ -139,6 +141,15 @@ typedef struct{
 	int (*function)(void *arg, uint8_t *data);
 	void *arg;
 } thread_channel_t;
+
+typedef struct{
+	int step;
+	int op;
+	uint32_t addr;
+	uint8_t data;
+	channel_t *channel;
+	FILE *f;
+} disk_t;
 
 #define max(a,b) ((a) > (b) ? (a) : (b))
 

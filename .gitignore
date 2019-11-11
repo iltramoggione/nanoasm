@@ -6,3 +6,4 @@ dep/*
 log.txt
 commit.txt
 test*
+*.stackdump

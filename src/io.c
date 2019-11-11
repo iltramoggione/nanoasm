@@ -3,6 +3,15 @@
 
 #include "../include/io.h"
 
+enum disk_op{
+	DISK_GET_OP,
+	DISK_GET_ADDR_1,
+	DISK_GET_ADDR_2,
+	DISK_GET_ADDR_3,
+	DISK_GET_ADDR_4,
+	DISK_W_GET_DATA,
+};
+
 channel_t *new_channel_t()
 {
 	channel_t *r=malloc(sizeof(channel_t));
@@ -110,6 +119,75 @@ void *channel_reading(void *arg)
 	}
 }
 
+disk_t *new_disk_t(char *file)
+{
+	disk_t *r=malloc(sizeof(disk_t));
+	r->step=0;
+	r->op=0;
+	r->addr=0;
+	r->channel=new_channel_t();
+	r->f=fopen(file,"r+b");
+	return r;
+}
+
+void free_disk_t(disk_t *disk)
+{
+	channel_close(disk->channel);
+	fclose(disk->f);
+	free(disk->channel);
+	free(disk);
+}
+
+int disk_writer(void *arg, uint8_t *data)
+{
+	disk_t *disk=(disk_t*)arg;
+	switch(disk->step)
+	{
+		case DISK_GET_OP:
+			disk->op=*data;
+			break;
+		case DISK_GET_ADDR_1:
+		case DISK_GET_ADDR_2:
+		case DISK_GET_ADDR_3:
+		case DISK_GET_ADDR_4:
+			disk->addr=(disk->addr<<8)+*data;
+			break;
+		case DISK_W_GET_DATA:
+			disk->data=*data;
+			break;
+	}
+	switch(disk->op)
+	{
+		case 'r':
+			if(disk->step==DISK_GET_ADDR_4)
+			{
+				fseek(disk->f,disk->addr,SEEK_SET);
+				fread(&disk->data,1,1,disk->f);
+				channel_write(disk->channel,disk->data);
+				disk->step=-1;
+			}
+			break;
+		case 'w':
+			if(disk->step==DISK_W_GET_DATA)
+			{
+				fseek(disk->f,disk->addr,SEEK_SET);
+				fwrite(&disk->data,1,1,disk->f);
+				disk->step=-1;
+			}
+			break;
+		default: return 1;
+	}
+	disk->step++;
+	return 0;
+}
+
+int disk_reader(void *arg, uint8_t *data)
+{
+	disk_t *disk=(disk_t*)arg;
+	*data=channel_read(disk->channel);
+	return 0;
+}
+
 int null_reader_writer(void *arg, uint8_t *data)
 {
 	return 1;
@@ -118,18 +196,21 @@ int null_reader_writer(void *arg, uint8_t *data)
 int stdout_writer(void *arg, uint8_t *data)
 {
 	printf("%c",*data);
+	fflush(stdout);
 	return 0;
 }
 
 int stderr_writer(void *arg, uint8_t *data)
 {
 	fprintf(stderr,"%c",*data);
+	fflush(stderr);
 	return 0;
 }
 
 int stddebug_writer(void *arg, uint8_t *data)
 {
-	fprintf(STDDEBUG,"%c",*data);
+	DEBUG("%c",*data);
+	fflush(STDDEBUG);
 	return 0;
 }
 
@@ -144,18 +225,20 @@ int stdin_reader(void *arg, uint8_t *data)
 
 int file_writer(void *arg, uint8_t *data)
 {
-	fwrite(data,1,1,(FILE*)arg);
+	FILE *f=arg;
+	fwrite(data,1,1,f);
 	return 0;
 }
 
 int file_reader(void *arg, uint8_t *data)
 {
-	fread(data,1,1,(FILE*)arg);
-	if(feof((FILE*)arg)) return 1;
+	FILE *f=arg;
+	fread(data,1,1,f);
+	if(feof(f)) return 1;
 	return 0;
 }
 
-thread_channel_t *new_channel(void* (*type)(void *arg), int (*function)(void *arg, uint8_t *data), void *arg)
+thread_channel_t *new_thread_channel_t(void* (*type)(void *arg), int (*function)(void *arg, uint8_t *data), void *arg)
 {
 	thread_channel_t *r=malloc(sizeof(thread_channel_t));
 	r->channel=new_channel_t();
@@ -165,54 +248,72 @@ thread_channel_t *new_channel(void* (*type)(void *arg), int (*function)(void *ar
 	return r;
 }
 
-thread_channel_t *new_channel_writing(int (*function)(void *arg, uint8_t *data), void *arg)
+void free_thread_channel_t(thread_channel_t *thread_channel)
 {
-	return new_channel(channel_writing,function,arg);
+	channel_close(thread_channel->channel);
+	pthread_join(thread_channel->thread,NULL);
+	free(thread_channel->channel);
+	free(thread_channel);
 }
 
-thread_channel_t *new_channel_reading(int (*function)(void *arg, uint8_t *data), void *arg)
+thread_channel_t *new_thread_channel_t_writing(int (*function)(void *arg, uint8_t *data), void *arg)
 {
-	return new_channel(channel_reading,function,arg);
+	return new_thread_channel_t(channel_writing,function,arg);
+}
+
+thread_channel_t *new_thread_channel_t_reading(int (*function)(void *arg, uint8_t *data), void *arg)
+{
+	return new_thread_channel_t(channel_reading,function,arg);
 }
 
 thread_channel_t *new_null_writer_channel()
 {
-	return new_channel_writing(null_reader_writer,NULL);
+	return new_thread_channel_t_writing(null_reader_writer,NULL);
 }
 
 thread_channel_t *new_stdout_writer_channel()
 {
-	return new_channel_writing(stdout_writer,NULL);
+	return new_thread_channel_t_writing(stdout_writer,NULL);
 }
 
 thread_channel_t *new_stderr_writer_channel()
 {
-	return new_channel_writing(stderr_writer,NULL);
+	return new_thread_channel_t_writing(stderr_writer,NULL);
 }
 
 thread_channel_t *new_stddebug_writer_channel()
 {
-	return new_channel_writing(stddebug_writer,NULL);
+	return new_thread_channel_t_writing(stddebug_writer,NULL);
 }
 
 thread_channel_t *new_file_writer_channel(FILE *f)
 {
-	return new_channel_writing(file_writer,f);
+	return new_thread_channel_t_writing(file_writer,f);
+}
+
+thread_channel_t *new_disk_writer_channel(disk_t *disk)
+{
+	return new_thread_channel_t_writing(disk_writer,disk);
 }
 
 thread_channel_t *new_null_reader_channel()
 {
-	return new_channel_reading(null_reader_writer,NULL);
+	return new_thread_channel_t_reading(null_reader_writer,NULL);
 }
 
 thread_channel_t *new_stdin_reader_channel()
 {
-	return new_channel_reading(stdin_reader,NULL);
+	return new_thread_channel_t_reading(stdin_reader,NULL);
 }
 
 thread_channel_t *new_file_reader_channel(FILE *f)
 {
-	return new_channel_reading(file_reader,f);
+	return new_thread_channel_t_reading(file_reader,f);
+}
+
+thread_channel_t *new_disk_reader_channel(disk_t *disk)
+{
+	return new_thread_channel_t_reading(disk_reader,disk);
 }
 
 #endif

@@ -20,6 +20,7 @@ DEPS    :=$(patsubst $(SRC)/%.c,$(DEP)/%.d,$(SRCS))
 EXE     :=$(BIN)/nanoasm$(EXEEXT)
 LOG     :=log.txt
 CFLAGS  :=-Wall -Wno-comment -Werror -lpthread -std=c11
+#CFLAGS  :=-Wall -Wno-comment -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Werror -lpthread -std=c11
 LDLIBS  :=
 
 .PHONY: build run log err tee cleanobj cleanbin cleandep cleannotbin clean all allrun alllog allerr alltee
